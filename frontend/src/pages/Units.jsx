@@ -238,13 +238,12 @@ export const Units = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <div className="grid grid-cols-8 min-w-[900px] p-3.5 px-5 font-semibold bg-slate-50 text-slate-500 text-sm border-b border-slate-100 uppercase tracking-wide">
+                <div className="grid grid-cols-7 min-w-[800px] p-3.5 px-5 font-semibold bg-slate-50 text-slate-500 text-sm border-b border-slate-100 uppercase tracking-wide">
                   <span>Unit Number</span>
                   <span>Unit Type</span>
-                  <span>Building</span>
+                  <span>Civic Number</span>
                   <span>Floor</span>
                   <span>Bedrooms</span>
-                  <span>Rental Mode</span>
                   <span>Status</span>
                   <span>Actions</span>
                 </div>
@@ -255,17 +254,12 @@ export const Units = () => {
                   </div>
                 ) : (
                   filteredUnits.map((unit) => (
-                    <div key={unit.id} className="grid grid-cols-8 min-w-[900px] p-3.5 px-5 transition-all duration-300 hover:bg-slate-50 bg-white border-b border-slate-50 last:border-0 text-sm items-center">
+                    <div key={unit.id} className="grid grid-cols-7 min-w-[800px] p-3.5 px-5 transition-all duration-300 hover:bg-slate-50 bg-white border-b border-slate-50 last:border-0 text-sm items-center">
                       <span className="font-medium text-slate-900">{unit.unitNumber}</span>
                       <span className="text-slate-600">{unit.unitType || '-'}</span>
-                      <span className="text-slate-600">{unit.building}</span>
+                      <span className="font-bold text-indigo-600">{unit.civicNumber || unit.building}</span>
                       <span className="text-slate-600">{unit.floor || '-'}</span>
                       <span className="text-slate-600">{unit.bedrooms || '-'}</span>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold w-fit ${
-                        unit.rentalMode === 'FULL_UNIT' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {unit.rentalMode === 'FULL_UNIT' ? 'Full Unit' : 'Bedroom-wise'}
-                      </span>
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold w-fit ${
                         unit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
@@ -342,10 +336,10 @@ export const Units = () => {
               {/* Modal Body - Scrollable */}
               <div className="overflow-y-auto flex-1 p-6">
                 <form id="unitForm" onSubmit={handleSubmit} className="space-y-5">
-                  {/* Building Dropdown */}
+                  {/* Civic Number Dropdown */}
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Building <span className="text-red-500">*</span>
+                      Civic Number <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
                       <select
@@ -355,10 +349,10 @@ export const Units = () => {
                         required
                         className="w-full p-3.5 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 bg-white text-sm appearance-none pr-10 transition-all"
                       >
-                        <option value="" disabled>Select Building</option>
+                        <option value="" disabled>Select Civic Number</option>
                         {buildings.map(b => (
                           <option key={b.id} value={b.id}>
-                            {b.civicNumber ? `${b.civicNumber} - ` : ''}{b.name}
+                            {b.civicNumber || b.name}
                           </option>
                         ))}
                       </select>
@@ -549,8 +543,8 @@ export const Units = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Building</p>
-                    <p className="text-sm font-medium text-slate-900">{viewUnit.building}</p>
+                    <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Civic Number</p>
+                    <p className="text-sm font-bold text-indigo-600">{viewUnit.civicNumber || viewUnit.building}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Floor</p>
@@ -560,26 +554,17 @@ export const Units = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Rental Mode</p>
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      viewUnit.rentalMode === 'FULL_UNIT' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {viewUnit.rentalMode === 'FULL_UNIT' ? 'Full Unit' : 'Bedroom-wise'}
-                    </span>
-                  </div>
-                  <div>
                     <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Bedrooms</p>
                     <p className="text-sm font-medium text-slate-900">{viewUnit.bedrooms || '-'}</p>
                   </div>
-                </div>
-
-                <div>
-                  <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Status</p>
-                  <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
-                    viewUnit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}>
-                    {viewUnit.status}
-                  </span>
+                  <div>
+                    <p className="text-xs text-slate-500 uppercase font-semibold mb-1">Status</p>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                      viewUnit.status === 'Occupied' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {viewUnit.status}
+                    </span>
+                  </div>
                 </div>
               </div>
 

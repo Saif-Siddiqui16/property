@@ -76,8 +76,8 @@ export const UnitDetail = () => {
                         <div className="text-lg font-bold text-slate-800">{unit.unitType || '-'}</div>
                     </Card>
                     <Card className="p-4 flex flex-col gap-2">
-                        <div className="text-xs text-slate-500 uppercase font-semibold">Building</div>
-                        <div className="text-lg font-bold text-slate-800">{unit.building}</div>
+                        <div className="text-xs text-slate-500 uppercase font-semibold">Civic Number</div>
+                        <div className="text-lg font-bold text-indigo-600">{unit.civicNumber || unit.building}</div>
                     </Card>
                     <Card className="p-4 flex flex-col gap-2">
                         <div className="text-xs text-slate-500 uppercase font-semibold">Floor</div>
@@ -86,12 +86,6 @@ export const UnitDetail = () => {
                     <Card className="p-4 flex flex-col gap-2">
                         <div className="text-xs text-slate-500 uppercase font-semibold">Bedrooms</div>
                         <div className="text-lg font-bold text-slate-800">{unit.bedrooms || 1}</div>
-                    </Card>
-                    <Card className="p-4 flex flex-col gap-2 border-l-4 border-l-indigo-500">
-                        <div className="text-xs uppercase font-semibold text-indigo-600">Rental Mode</div>
-                        <div className="text-lg font-bold text-slate-800">
-                            {unit.rentalMode === 'FULL_UNIT' ? 'Full Unit' : 'Bedroom-wise'}
-                        </div>
                     </Card>
                     <Card className="p-4 flex flex-col gap-2">
                         <div className="text-xs text-slate-500 uppercase font-semibold">Status</div>

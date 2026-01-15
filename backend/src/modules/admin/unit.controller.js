@@ -30,8 +30,8 @@ exports.getAllUnits = async (req, res) => {
             unitNumber: u.unitNumber || u.name,
             unitType: u.unitType,
             floor: u.floor,
-            building: u.property.name,
-            rentalMode: u.rentalMode,
+            civicNumber: u.property.civicNumber,
+            building: u.property.civicNumber || u.property.name,
             status: u.status,
             propertyId: u.propertyId,
             bedrooms: u.bedrooms
@@ -116,9 +116,10 @@ exports.createUnit = async (req, res) => {
             unitNumber: newUnit.unitNumber || newUnit.name,
             unitType: newUnit.unitType,
             floor: newUnit.floor,
-            building: newUnit.property.name,
-            rentalMode: newUnit.rentalMode,
+            civicNumber: newUnit.property.civicNumber,
+            building: newUnit.property.civicNumber || newUnit.property.name,
             status: newUnit.status,
+            propertyId: newUnit.propertyId,
             bedrooms: newUnit.bedrooms
         };
 
@@ -155,10 +156,10 @@ exports.getUnitDetails = async (req, res) => {
             id: unit.id,
             unitNumber: unit.unitNumber || unit.name,
             unitType: unit.unitType,
-            building: unit.property.name,
+            civicNumber: unit.property.civicNumber,
+            building: unit.property.civicNumber || unit.property.name,
             propertyId: unit.propertyId,
             floor: unit.floor,
-            rentalMode: unit.rentalMode,
             status: unit.status,
             bedrooms: unit.bedrooms,
             bedroomsList: unit.bedroomsList.map(b => ({
@@ -262,9 +263,9 @@ exports.updateUnit = async (req, res) => {
             unitNumber: updatedUnit.unitNumber || updatedUnit.name,
             unitType: updatedUnit.unitType,
             floor: updatedUnit.floor,
-            building: updatedUnit.property.name,
+            civicNumber: updatedUnit.property.civicNumber,
+            building: updatedUnit.property.civicNumber || updatedUnit.property.name,
             propertyId: updatedUnit.propertyId,
-            rentalMode: updatedUnit.rentalMode,
             status: updatedUnit.status,
             bedrooms: updatedUnit.bedrooms
         };
