@@ -24,6 +24,8 @@ export const Tenants = () => {
   const [properties, setProperties] = useState([]);
   const [allUnits, setAllUnits] = useState([]); // All units fetched
   const [availableUnits, setAvailableUnits] = useState([]); // Filtered by selected property
+  const [allBedrooms, setAllBedrooms] = useState([]); // All vacant bedrooms
+  const [availableBedrooms, setAvailableBedrooms] = useState([]); // Filtered by selected property
 
   // For Modal Form State
   const [selectedPropertyId, setSelectedPropertyId] = useState('');
@@ -45,12 +47,14 @@ export const Tenants = () => {
 
   const fetchDropdownData = async () => {
     try {
-      const [propsRes, unitsRes] = await Promise.all([
+      const [propsRes, unitsRes, bedroomsRes] = await Promise.all([
         api.get('/admin/properties'),
-        api.get('/admin/units?limit=1000')
+        api.get('/admin/units?limit=1000'),
+        api.get('/admin/units/bedrooms/vacant')
       ]);
       setProperties(propsRes.data);
       setAllUnits(unitsRes.data.data || unitsRes.data);
+      setAllBedrooms(bedroomsRes.data || []);
     } catch (e) {
       console.error("Failed to fetch dropdown data", e);
     }
@@ -60,11 +64,11 @@ export const Tenants = () => {
     fetchDropdownData();
   }, []);
 
-  // Filter units when property changes in modal
+  // Filter units and bedrooms when property changes in modal
   useEffect(() => {
     if (selectedPropertyId) {
       // API response structure for units: { id, unitNumber, propertyId, status... }
-      const filtered = allUnits.filter(u => {
+      const filteredUnits = allUnits.filter(u => {
         const isMatch = u.propertyId === parseInt(selectedPropertyId);
         const isVacant = u.status === 'Vacant';
         // If editing, keep the current assigned unit even if it shows "Occupied"
@@ -72,11 +76,18 @@ export const Tenants = () => {
 
         return isMatch && (isVacant || isCurrentUnit);
       });
-      setAvailableUnits(filtered);
+      setAvailableUnits(filteredUnits);
+
+      // Filter bedrooms by property
+      const filteredBedrooms = allBedrooms.filter(b => {
+        return b.propertyId === parseInt(selectedPropertyId);
+      });
+      setAvailableBedrooms(filteredBedrooms);
     } else {
       setAvailableUnits([]);
+      setAvailableBedrooms([]);
     }
-  }, [selectedPropertyId, allUnits, editingTenant]);
+  }, [selectedPropertyId, allUnits, allBedrooms, editingTenant]);
 
   /* 🔗 HANDLE URL PARAMS */
   useEffect(() => {
@@ -129,17 +140,20 @@ export const Tenants = () => {
 
     if (editingTenant) {
       try {
-        const uId = form.unitId.value;
+        const bedroomId = form.bedroomId.value;
+        const selectedBedroom = allBedrooms.find(b => b.id === parseInt(bedroomId));
 
         await api.put(`/admin/tenants/${editingTenant.id}`, {
           name: form.name.value,
           type: form.type.value,
           email: form.email.value,
           phone: form.phone.value,
-          unitId: uId, // Backend handles unit swap logic
+          bedroomId: bedroomId,
+          unitId: selectedBedroom ? selectedBedroom.unitId : null,
         });
 
         await fetchTenants(); // Refresh data from server
+        await fetchDropdownData(); // Refresh bedrooms list
         setShowModal(false);
         setEditingTenant(null);
         form.reset();
@@ -150,24 +164,26 @@ export const Tenants = () => {
       return; // Stop execution here
     } else {
       try {
-        // Find selected names for display fallback/logic if needed, but primarily send IDs
+        // Find selected bedroom and property for display
         const propId = form.propertyId.value;
-        const uId = form.unitId.value;
+        const bedroomId = form.bedroomId.value;
         const selectedProp = properties.find(p => p.id === parseInt(propId));
-        const selectedUnit = allUnits.find(u => u.id === parseInt(uId));
+        const selectedBedroom = allBedrooms.find(b => b.id === parseInt(bedroomId));
 
         await api.post('/admin/tenants', {
           name: form.name.value,
           type: form.type.value,
           propertyId: propId,
-          property: selectedProp ? selectedProp.name : 'Unknown', // Fallback for UI until fully relational
-          unitId: uId,
-          unit: selectedUnit ? selectedUnit.unitNumber : 'Unknown', // Fallback
+          property: selectedProp ? selectedProp.name : 'Unknown',
+          bedroomId: bedroomId,
+          unitId: selectedBedroom ? selectedBedroom.unitId : null,
+          unit: selectedBedroom ? selectedBedroom.displayName : 'Unknown',
           email: form.email.value,
           phone: form.phone.value,
           password: form.password.value,
         });
         fetchTenants(); // Refresh
+        fetchDropdownData(); // Refresh bedrooms list
       } catch (e) {
         alert('Failed to create tenant');
         console.error(e);
@@ -399,7 +415,7 @@ export const Tenants = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-slate-600">Building / Property</label>
+                        <label className="text-sm font-medium text-slate-600">Building (Civic Number)</label>
                         <div className="relative">
                           <select
                             name="propertyId"
@@ -408,9 +424,9 @@ export const Tenants = () => {
                             required
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none bg-white font-medium"
                           >
-                            <option value="">Select Property</option>
+                            <option value="">Select Building</option>
                             {properties.map(p => (
-                              <option key={p.id} value={p.id}>{p.name}</option>
+                              <option key={p.id} value={p.id}>{p.civicNumber || p.name}</option>
                             ))}
                           </select>
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
@@ -418,18 +434,18 @@ export const Tenants = () => {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-slate-600">Unit / Bedroom</label>
+                        <label className="text-sm font-medium text-slate-600">Bedroom Number</label>
                         <div className="relative">
                           <select
-                            name="unitId"
-                            defaultValue={editingTenant?.unitId || ''}
+                            name="bedroomId"
+                            defaultValue={editingTenant?.bedroomId || ''}
                             required
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all appearance-none bg-white font-medium"
                             disabled={!selectedPropertyId}
                           >
-                            <option value="">Select Unit</option>
-                            {availableUnits.map(u => (
-                              <option key={u.id} value={u.id}>{u.unitNumber} ({u.rentalMode})</option>
+                            <option value="">Select Bedroom</option>
+                            {availableBedrooms.map(b => (
+                              <option key={b.id} value={b.id}>{b.displayName} (Floor {b.floor})</option>
                             ))}
                           </select>
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>

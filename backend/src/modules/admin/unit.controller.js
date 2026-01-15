@@ -277,6 +277,56 @@ exports.updateUnit = async (req, res) => {
     }
 };
 
+// GET /api/admin/units/bedrooms/vacant
+exports.getVacantBedrooms = async (req, res) => {
+    try {
+        const propertyId = req.query.propertyId ? parseInt(req.query.propertyId) : undefined;
+
+        // Build where clause for units
+        const unitWhere = {};
+        if (propertyId) unitWhere.propertyId = propertyId;
+
+        // Fetch all bedrooms with their unit and property info
+        const bedrooms = await prisma.bedroom.findMany({
+            where: {
+                status: 'Vacant',
+                unit: unitWhere
+            },
+            include: {
+                unit: {
+                    include: {
+                        property: true
+                    }
+                }
+            },
+            orderBy: [
+                { unit: { propertyId: 'asc' } },
+                { unitId: 'asc' },
+                { roomNumber: 'asc' }
+            ]
+        });
+
+        // Format bedrooms for dropdown: civicNumber-unitNumber-roomNumber (e.g., 82-101-1)
+        const formatted = bedrooms.map(b => ({
+            id: b.id,
+            bedroomNumber: b.bedroomNumber,
+            displayName: `${b.unit.property.civicNumber}-${b.unit.unitNumber}-${b.roomNumber}`,
+            civicNumber: b.unit.property.civicNumber,
+            unitNumber: b.unit.unitNumber,
+            roomNumber: b.roomNumber,
+            floor: b.unit.floor,
+            unitId: b.unitId,
+            propertyId: b.unit.propertyId,
+            status: b.status
+        }));
+
+        res.json(formatted);
+    } catch (error) {
+        console.error('Get Vacant Bedrooms Error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // DELETE /api/admin/units/:id
 exports.deleteUnit = async (req, res) => {
     try {
