@@ -185,136 +185,141 @@ export const Units = () => {
 
         {/* ADD UNIT MODAL */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] overflow-y-auto p-4">
-            <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl relative my-auto">
-              <div className="flex items-center justify-between mb-5">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center">
+            <div className="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-2xl max-h-[90vh] flex flex-col">
+              {/* Modal Header - Fixed */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 flex-shrink-0">
                 <h3 className="text-xl font-bold text-slate-900">Add New Unit</h3>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded-lg"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <form onSubmit={addUnit}>
-                {/* Building Name Dropdown */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Building *</label>
-                  <div className="relative">
-                    <select
-                      name="propertyId"
-                      required
-                      defaultValue=""
-                      className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 bg-white text-sm appearance-none pr-10"
-                    >
-                      <option value="" disabled>Select Building</option>
-                      {buildings.map(b => (
-                        <option key={b.id} value={b.id}>
-                          {b.civicNumber ? `${b.civicNumber} - ` : ''}{b.name}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <ChevronDown size={16} className="text-slate-400" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Unit Name *</label>
-                    <input
-                      name="unit"
-                      placeholder="e.g., Unit 101"
-                      required
-                      className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Unit Number</label>
-                    <input
-                      name="unitNumber"
-                      placeholder="e.g., 82-101"
-                      className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Unit Type</label>
+              {/* Modal Body - Scrollable */}
+              <div className="overflow-y-auto flex-1 p-6">
+                <form id="addUnitForm" onSubmit={addUnit}>
+                  {/* Building Name Dropdown */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Building *</label>
                     <div className="relative">
                       <select
-                        name="unitType"
+                        name="propertyId"
+                        required
                         defaultValue=""
                         className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 bg-white text-sm appearance-none pr-10"
                       >
-                        <option value="">Select Type</option>
-                        <option value="Mackenzie">Mackenzie</option>
-                        <option value="Nelson">Nelson</option>
-                        <option value="Hudson">Hudson</option>
-                        <option value="Richelieu">Richelieu</option>
-                        <option value="Rupert">Rupert</option>
+                        <option value="" disabled>Select Building</option>
+                        {buildings.map(b => (
+                          <option key={b.id} value={b.id}>
+                            {b.civicNumber ? `${b.civicNumber} - ` : ''}{b.name}
+                          </option>
+                        ))}
                       </select>
                       <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                         <ChevronDown size={16} className="text-slate-400" />
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Floor</label>
-                    <input
-                      name="floor"
-                      type="number"
-                      placeholder="e.g., 1"
-                      min="1"
-                      className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Rental Mode *</label>
-                    <div className="relative">
-                      <select
-                        name="rentalMode"
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Unit Name *</label>
+                      <input
+                        name="unit"
+                        placeholder="e.g., Unit 101"
                         required
-                        defaultValue="FULL_UNIT"
-                        className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 bg-white text-sm appearance-none pr-10"
-                      >
-                        <option value="FULL_UNIT">Full Unit</option>
-                        <option value="BEDROOM_WISE">Bedroom-wise</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                        <ChevronDown size={16} className="text-slate-400" />
-                      </div>
+                        className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Unit Number</label>
+                      <input
+                        name="unitNumber"
+                        placeholder="e.g., 82-101"
+                        className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                      />
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
-                    <input
-                      name="bedrooms"
-                      type="number"
-                      placeholder="e.g., 2"
-                      min="1"
-                      defaultValue="1"
-                      className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
-                    />
-                  </div>
-                </div>
 
-                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
-                  <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" variant="primary">
-                    Save Unit
-                  </Button>
-                </div>
-              </form>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Unit Type</label>
+                      <div className="relative">
+                        <select
+                          name="unitType"
+                          defaultValue=""
+                          className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 bg-white text-sm appearance-none pr-10"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="Mackenzie">Mackenzie</option>
+                          <option value="Nelson">Nelson</option>
+                          <option value="Hudson">Hudson</option>
+                          <option value="Richelieu">Richelieu</option>
+                          <option value="Rupert">Rupert</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <ChevronDown size={16} className="text-slate-400" />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Floor</label>
+                      <input
+                        name="floor"
+                        type="number"
+                        placeholder="e.g., 1"
+                        min="1"
+                        className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Rental Mode *</label>
+                      <div className="relative">
+                        <select
+                          name="rentalMode"
+                          required
+                          defaultValue="FULL_UNIT"
+                          className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 bg-white text-sm appearance-none pr-10"
+                        >
+                          <option value="FULL_UNIT">Full Unit</option>
+                          <option value="BEDROOM_WISE">Bedroom-wise</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                          <ChevronDown size={16} className="text-slate-400" />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Bedrooms</label>
+                      <input
+                        name="bedrooms"
+                        type="number"
+                        placeholder="e.g., 2"
+                        min="1"
+                        defaultValue="1"
+                        className="w-full p-3 rounded-lg border border-slate-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                      />
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              {/* Modal Footer - Fixed */}
+              <div className="flex justify-end gap-3 p-6 border-t border-slate-100 flex-shrink-0 bg-slate-50 rounded-b-2xl">
+                <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" form="addUnitForm" variant="primary">
+                  Save Unit
+                </Button>
+              </div>
             </div>
           </div>
         )}
