@@ -331,9 +331,10 @@ exports.getVacantBedrooms = async (req, res) => {
 exports.deleteUnit = async (req, res) => {
     try {
         const { id } = req.params;
+        const unitId = parseInt(id);
 
         const unit = await prisma.unit.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: unitId },
             include: { leases: true, bedroomsList: true }
         });
 
@@ -347,23 +348,32 @@ exports.deleteUnit = async (req, res) => {
             return res.status(400).json({ message: 'Cannot delete unit with active lease' });
         }
 
-        // Delete associated bedrooms first
-        if (unit.bedroomsList.length > 0) {
-            await prisma.bedroom.deleteMany({
-                where: { unitId: parseInt(id) }
+        // Use transaction to delete all related records
+        await prisma.$transaction(async (tx) => {
+            // Delete associated invoices first (FK constraint)
+            await tx.invoice.deleteMany({
+                where: { unitId: unitId }
             });
-        }
 
-        // Delete associated leases (non-active)
-        if (unit.leases.length > 0) {
-            await prisma.lease.deleteMany({
-                where: { unitId: parseInt(id) }
+            // Delete associated refund adjustments (FK constraint)
+            await tx.refundAdjustment.deleteMany({
+                where: { unitId: unitId }
             });
-        }
 
-        // Delete the unit
-        await prisma.unit.delete({
-            where: { id: parseInt(id) }
+            // Delete associated bedrooms
+            await tx.bedroom.deleteMany({
+                where: { unitId: unitId }
+            });
+
+            // Delete associated leases (non-active)
+            await tx.lease.deleteMany({
+                where: { unitId: unitId }
+            });
+
+            // Delete the unit
+            await tx.unit.delete({
+                where: { id: unitId }
+            });
         });
 
         res.json({ message: 'Unit deleted successfully' });

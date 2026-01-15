@@ -432,42 +432,20 @@ export const Units = () => {
                     </div>
                   </div>
 
-                  {/* Rental Mode & Bedrooms Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Rental Mode <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          name="rentalMode"
-                          value={formData.rentalMode}
-                          onChange={handleInputChange}
-                          required
-                          className="w-full p-3.5 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 bg-white text-sm appearance-none pr-10 transition-all"
-                        >
-                          <option value="FULL_UNIT">Full Unit</option>
-                          <option value="BEDROOM_WISE">Bedroom-wise</option>
-                        </select>
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                          <ChevronDown size={18} className="text-slate-400" />
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Number of Bedrooms
-                      </label>
-                      <input
-                        name="bedrooms"
-                        type="number"
-                        value={formData.bedrooms}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 2"
-                        min="1"
-                        className="w-full p-3.5 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm transition-all"
-                      />
-                    </div>
+                  {/* Number of Bedrooms */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Number of Bedrooms
+                    </label>
+                    <input
+                      name="bedrooms"
+                      type="number"
+                      value={formData.bedrooms}
+                      onChange={handleInputChange}
+                      placeholder="e.g., 3"
+                      min="1"
+                      className="w-full p-3.5 rounded-xl border-2 border-slate-200 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 text-sm transition-all"
+                    />
                   </div>
 
                   {/* Status (only for edit) */}

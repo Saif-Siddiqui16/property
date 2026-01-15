@@ -65,10 +65,6 @@ export const LeaseHistory = () => {
                         <FileText size={18} />
                         New Lease
                     </Button>
-                    <Button variant="secondary" onClick={() => navigate('/leases/new-bedroom')}>
-                        <Home size={18} />
-                        Bedroom Lease
-                    </Button>
                 </div>
 
                 {/* TABLE */}
@@ -78,10 +74,9 @@ export const LeaseHistory = () => {
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-200">
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Unit</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
-                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Scope</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tenant</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Term</th>
+                                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Monthly Rent</th>
                                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
                                 </tr>
@@ -97,17 +92,9 @@ export const LeaseHistory = () => {
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="font-semibold text-slate-800">{lease.unit}</div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${lease.type === 'Full Unit'
-                                                ? 'bg-blue-50 text-blue-700 border-blue-100'
-                                                : 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                                                }`}>
-                                                {lease.type}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{lease.scope}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-700">{lease.tenant}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-mono text-[13px]">{lease.term}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-slate-700">${(lease.monthlyRent || 0).toLocaleString('en-CA')}</td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${lease.status === 'active'
                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
@@ -169,24 +156,16 @@ export const LeaseHistory = () => {
                                     <span className="text-sm font-semibold text-slate-900">{selectedLease.unit}</span>
                                 </div>
                                 <div className="flex justify-between py-3 border-b border-slate-100">
-                                    <span className="text-sm font-medium text-slate-500">Monthly Rent</span>
-                                    <span className="text-sm font-semibold text-slate-900">${(selectedLease.monthlyRent || 0).toLocaleString('en-CA')}</span>
-                                </div>
-                                <div className="flex justify-between py-3 border-b border-slate-100">
-                                    <span className="text-sm font-medium text-slate-500">Type</span>
-                                    <span className="text-sm font-medium text-slate-900">{selectedLease.type}</span>
-                                </div>
-                                <div className="flex justify-between py-3 border-b border-slate-100">
-                                    <span className="text-sm font-medium text-slate-500">Scope</span>
-                                    <span className="text-sm font-medium text-slate-900">{selectedLease.scope}</span>
-                                </div>
-                                <div className="flex justify-between py-3 border-b border-slate-100">
                                     <span className="text-sm font-medium text-slate-500">Tenant</span>
                                     <span className="text-sm font-medium text-slate-900">{selectedLease.tenant}</span>
                                 </div>
                                 <div className="flex justify-between py-3 border-b border-slate-100">
                                     <span className="text-sm font-medium text-slate-500">Term</span>
                                     <span className="text-sm font-medium text-slate-900">{selectedLease.term}</span>
+                                </div>
+                                <div className="flex justify-between py-3 border-b border-slate-100">
+                                    <span className="text-sm font-medium text-slate-500">Monthly Rent</span>
+                                    <span className="text-sm font-semibold text-slate-900">${(selectedLease.monthlyRent || 0).toLocaleString('en-CA')}</span>
                                 </div>
                                 <div className="flex justify-between py-3 border-b border-slate-100">
                                     <span className="text-sm font-medium text-slate-500">Status</span>

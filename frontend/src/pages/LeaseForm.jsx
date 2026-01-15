@@ -43,20 +43,20 @@ export const LeaseForm = () => {
 
     if (buildingId) {
       try {
-        // Fetch units for this building with FULL_UNIT rental mode that have assigned tenants
-        const res = await api.get(`/admin/leases/units-with-tenants?propertyId=${buildingId}&rentalMode=FULL_UNIT`);
-        const allUnits = res.data.data;
+        // Fetch all units for this building
+        const unitsRes = await api.get(`/admin/units?propertyId=${buildingId}&limit=1000`);
+        const allUnits = unitsRes.data.data || unitsRes.data;
 
-        // Fetch all leases to find active ones
+        // Fetch all active leases to find which units are already leased
         const leasesRes = await api.get('/admin/leases');
-        const activeUnits = leasesRes.data
+        const activeUnitNames = leasesRes.data
           .filter(l => l.status === 'active')
           .map(l => l.unit);
 
         // Filter out units that already have an active lease
-        const filteredUnits = allUnits.filter(u => !activeUnits.includes(u.unitNumber));
+        const availableUnits = allUnits.filter(u => !activeUnitNames.includes(u.unitNumber));
 
-        setUnits(filteredUnits);
+        setUnits(availableUnits);
       } catch (error) {
         console.error('Failed to fetch units', error);
       }
@@ -117,7 +117,7 @@ export const LeaseForm = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Building Selection */}
           <div className="md:col-span-2">
-            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Select Building</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Select Building (Civic Number)</label>
             <div className="relative">
               <Home size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <select
@@ -127,7 +127,7 @@ export const LeaseForm = () => {
               >
                 <option value="">Choose a Building</option>
                 {buildings.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
+                  <option key={b.id} value={b.id}>{b.civicNumber || b.name}</option>
                 ))}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
