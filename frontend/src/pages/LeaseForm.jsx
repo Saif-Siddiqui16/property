@@ -3,26 +3,29 @@ import { MainLayout } from '../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import { Button } from '../components/Button';
-import { Home, User, Calendar, DollarSign, Shield, ChevronDown } from 'lucide-react';
+import { Home, User, Calendar, DollarSign, Shield, ChevronDown, Bed } from 'lucide-react';
 
 export const LeaseForm = () => {
   const navigate = useNavigate();
   const [buildings, setBuildings] = useState([]);
   const [units, setUnits] = useState([]);
+  const [bedrooms, setBedrooms] = useState([]);
+  const [tenants, setTenants] = useState([]);
   const [selectedBuilding, setSelectedBuilding] = useState('');
+  const [selectedUnit, setSelectedUnit] = useState(null);
   const [form, setForm] = useState({
     unitId: '',
+    bedroomId: '',
     tenantId: '',
-    tenantName: '',
     startDate: '',
     endDate: '',
     monthlyRent: '',
     securityDeposit: ''
   });
-  const [isTenantReadOnly, setIsTenantReadOnly] = useState(false);
 
   useEffect(() => {
     fetchBuildings();
+    fetchTenants();
   }, []);
 
   const fetchBuildings = async () => {
@@ -34,12 +37,24 @@ export const LeaseForm = () => {
     }
   };
 
+  const fetchTenants = async () => {
+    try {
+      const res = await api.get('/admin/tenants');
+      // Filter tenants that don't have active lease (only DRAFT or no lease)
+      const availableTenants = res.data.filter(t => t.leaseStatus !== 'Active');
+      setTenants(availableTenants);
+    } catch (error) {
+      console.error('Failed to fetch tenants', error);
+    }
+  };
+
   const handleBuildingChange = async (e) => {
     const buildingId = e.target.value;
     setSelectedBuilding(buildingId);
     setUnits([]);
-    setForm({ ...form, unitId: '', tenantId: '', tenantName: '' });
-    setIsTenantReadOnly(false);
+    setBedrooms([]);
+    setSelectedUnit(null);
+    setForm({ ...form, unitId: '', bedroomId: '', tenantId: '' });
 
     if (buildingId) {
       try {
@@ -65,34 +80,52 @@ export const LeaseForm = () => {
 
   const handleUnitChange = async (e) => {
     const unitId = e.target.value;
-    setForm({ ...form, unitId, tenantId: '', tenantName: '' });
-    setIsTenantReadOnly(false);
+    setForm({ ...form, unitId, bedroomId: '', tenantId: '' });
+    setBedrooms([]);
+    setSelectedUnit(null);
 
     if (unitId) {
+      const unit = units.find(u => u.id === parseInt(unitId));
+      setSelectedUnit(unit);
+
       try {
-        const res = await api.get(`/admin/leases/active/${unitId}`);
-        if (res.data) {
+        // Fetch vacant bedrooms for this unit
+        const bedroomsRes = await api.get('/admin/units/bedrooms/vacant');
+        const unitBedrooms = bedroomsRes.data.filter(b => b.unitId === parseInt(unitId));
+        setBedrooms(unitBedrooms);
+
+        // Check if there's a DRAFT lease with tenant for this unit
+        const leaseRes = await api.get(`/admin/leases/active/${unitId}`);
+        if (leaseRes.data && leaseRes.data.tenantId) {
           setForm(prev => ({
             ...prev,
-            tenantId: res.data.tenantId,
-            tenantName: res.data.tenantName
+            tenantId: leaseRes.data.tenantId.toString()
           }));
-          setIsTenantReadOnly(true);
         }
       } catch (error) {
-        console.error('Failed to fetch active lease', error);
+        console.error('Failed to fetch bedrooms', error);
       }
     }
   };
 
   const handleSave = async () => {
-    if (!form.unitId || !form.tenantName || !form.startDate || !form.endDate) {
-      alert('Please fill all required fields');
+    if (!form.unitId || !form.tenantId || !form.startDate || !form.endDate) {
+      alert('Please fill all required fields (Unit, Tenant, Start Date, End Date)');
       return;
     }
 
     try {
-      await api.post('/admin/leases', form);
+      const payload = {
+        unitId: parseInt(form.unitId),
+        tenantId: parseInt(form.tenantId),
+        bedroomId: form.bedroomId ? parseInt(form.bedroomId) : null,
+        startDate: form.startDate,
+        endDate: form.endDate,
+        monthlyRent: parseFloat(form.monthlyRent) || 0,
+        securityDeposit: parseFloat(form.securityDeposit) || 0
+      };
+
+      await api.post('/admin/leases', payload);
       alert('Lease created successfully');
       navigate('/leases');
     } catch (error) {
@@ -109,8 +142,8 @@ export const LeaseForm = () => {
             <Home size={24} />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-800 m-0">New Full Unit Lease</h2>
-            <p className="text-slate-500 text-sm mt-1">Create a lease for an entire apartment or house</p>
+            <h2 className="text-2xl font-bold text-slate-800 m-0">New Lease</h2>
+            <p className="text-slate-500 text-sm mt-1">Create a lease for an apartment unit or bedroom</p>
           </div>
         </div>
 
@@ -150,7 +183,7 @@ export const LeaseForm = () => {
               >
                 <option value="">Select Unit</option>
                 {units.map(u => (
-                  <option key={u.id} value={u.id}>{u.unitNumber}</option>
+                  <option key={u.id} value={u.id}>{u.unitNumber} (Floor {u.floor})</option>
                 ))}
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
@@ -159,18 +192,51 @@ export const LeaseForm = () => {
             </div>
           </div>
 
-          {/* Tenant Name */}
+          {/* Bedroom Selection (shows only if unit has bedrooms) */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Tenant Name</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+              Bedroom {bedrooms.length > 0 ? `(${bedrooms.length} available)` : ''}
+            </label>
+            <div className="relative">
+              <Bed size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <select
+                name="bedroomId"
+                value={form.bedroomId}
+                onChange={(e) => setForm({ ...form, bedroomId: e.target.value })}
+                disabled={!form.unitId || bedrooms.length === 0}
+                className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50/50 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-800 appearance-none disabled:opacity-50"
+              >
+                <option value="">{bedrooms.length === 0 ? 'No bedrooms available' : 'Select Bedroom (Optional)'}</option>
+                {bedrooms.map(b => (
+                  <option key={b.id} value={b.id}>{b.displayName} - Room {b.roomNumber}</option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronDown size={18} />
+              </div>
+            </div>
+          </div>
+
+          {/* Tenant Selection */}
+          <div className="md:col-span-2">
+            <label className="block text-sm font-semibold text-slate-700 mb-2 uppercase tracking-wide">Select Tenant</label>
             <div className="relative">
               <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                placeholder="Tenant full name"
-                value={form.tenantName}
-                onChange={(e) => setForm({ ...form, tenantName: e.target.value })}
-                readOnly={isTenantReadOnly}
-                className={`w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-800 ${isTenantReadOnly ? 'bg-slate-100 cursor-not-allowed' : ''}`}
-              />
+              <select
+                name="tenantId"
+                value={form.tenantId}
+                onChange={(e) => setForm({ ...form, tenantId: e.target.value })}
+                disabled={!form.unitId}
+                className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 bg-slate-50/50 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-800 appearance-none disabled:opacity-50"
+              >
+                <option value="">Select Tenant</option>
+                {tenants.map(t => (
+                  <option key={t.id} value={t.id}>{t.name} ({t.email})</option>
+                ))}
+              </select>
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                <ChevronDown size={18} />
+              </div>
             </div>
           </div>
 
@@ -208,6 +274,7 @@ export const LeaseForm = () => {
               <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 placeholder="0.00"
+                type="number"
                 value={form.monthlyRent}
                 onChange={(e) => setForm({ ...form, monthlyRent: e.target.value })}
                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-800"
@@ -221,6 +288,7 @@ export const LeaseForm = () => {
               <Shield size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 placeholder="0.00"
+                type="number"
                 value={form.securityDeposit}
                 onChange={(e) => setForm({ ...form, securityDeposit: e.target.value })}
                 className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium text-slate-800"
