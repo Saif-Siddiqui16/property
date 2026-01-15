@@ -27,11 +27,14 @@ exports.getAllUnits = async (req, res) => {
 
         const formatted = units.map(u => ({
             id: u.id,
-            unitNumber: u.name,
+            unitNumber: u.unitNumber || u.name,
+            unitType: u.unitType,
+            floor: u.floor,
             building: u.property.name,
             rentalMode: u.rentalMode,
             status: u.status,
-            propertyId: u.propertyId
+            propertyId: u.propertyId,
+            bedrooms: u.bedrooms
         }));
 
         res.json({
@@ -53,7 +56,7 @@ exports.getAllUnits = async (req, res) => {
 // POST /api/admin/units
 exports.createUnit = async (req, res) => {
     try {
-        const { unit: unitName, propertyId, rentalMode } = req.body;
+        const { unit: unitName, propertyId, rentalMode, unitNumber, unitType, floor, bedrooms: bedroomCount } = req.body;
 
         if (!propertyId) {
             return res.status(400).json({ message: 'Property (Building) is required' });
@@ -73,25 +76,50 @@ exports.createUnit = async (req, res) => {
             normalizedMode = 'FULL_UNIT';
         }
 
+        // Determine number of bedrooms
+        const numBedrooms = parseInt(bedroomCount) || (normalizedMode === 'BEDROOM_WISE' ? 3 : 1);
+
+        // Create the unit with new fields
         const newUnit = await prisma.unit.create({
             data: {
                 name: unitName,
+                unitNumber: unitNumber || unitName,
+                unitType: unitType || null,
+                floor: floor ? parseInt(floor) : null,
                 propertyId: parseInt(finalPropertyId),
                 status: 'Vacant',
                 rentalMode: normalizedMode,
-                bedrooms: normalizedMode === 'BEDROOM_WISE' ? 3 : 1, // keeping bedroom count for other heuristics
+                bedrooms: numBedrooms,
                 rentAmount: 0
             },
             include: { property: true }
         });
 
+        // If BEDROOM_WISE, create individual bedroom records
+        if (normalizedMode === 'BEDROOM_WISE' && numBedrooms > 0) {
+            const bedroomsToCreate = Array.from({ length: numBedrooms }).map((_, i) => ({
+                bedroomNumber: `${newUnit.unitNumber || newUnit.name}-${i + 1}`,
+                roomNumber: i + 1,
+                unitId: newUnit.id,
+                status: 'Vacant',
+                rentAmount: 0
+            }));
+
+            await prisma.bedroom.createMany({
+                data: bedroomsToCreate
+            });
+        }
+
         // Format exactly as frontend expects for the list
         const formatted = {
             id: newUnit.id,
-            unitNumber: newUnit.name,
+            unitNumber: newUnit.unitNumber || newUnit.name,
+            unitType: newUnit.unitType,
+            floor: newUnit.floor,
             building: newUnit.property.name,
             rentalMode: newUnit.rentalMode,
-            status: newUnit.status
+            status: newUnit.status,
+            bedrooms: newUnit.bedrooms
         };
 
         res.status(201).json(formatted);
@@ -112,7 +140,8 @@ exports.getUnitDetails = async (req, res) => {
                 leases: {
                     include: { tenant: true },
                     orderBy: { startDate: 'desc' }
-                }
+                },
+                bedroomsList: true
             }
         });
 
@@ -124,11 +153,20 @@ exports.getUnitDetails = async (req, res) => {
         // Transform to match frontend Skeleton needs
         res.json({
             id: unit.id,
-            unitNumber: unit.name,
+            unitNumber: unit.unitNumber || unit.name,
+            unitType: unit.unitType,
             building: unit.property.name,
-            floor: 'N/A', // Schema missing floor
+            floor: unit.floor,
             rentalMode: unit.rentalMode,
             status: unit.status,
+            bedrooms: unit.bedrooms,
+            bedroomsList: unit.bedroomsList.map(b => ({
+                id: b.id,
+                bedroomNumber: b.bedroomNumber,
+                roomNumber: b.roomNumber,
+                status: b.status,
+                rentAmount: b.rentAmount
+            })),
             activeLease: activeLease ? {
                 tenantName: activeLease.tenant.name,
                 startDate: activeLease.startDate,

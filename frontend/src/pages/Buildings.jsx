@@ -3,6 +3,7 @@ import { MainLayout } from '../layouts/MainLayout';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Plus, Search, Filter, Eye, Pencil, Trash2, Building2, Home, X } from 'lucide-react';
+import api from '../api/client';
 
 export const Buildings = () => {
   const [buildings, setBuildings] = useState([]);
@@ -13,9 +14,6 @@ export const Buildings = () => {
   const [currentBuilding, setCurrentBuilding] = useState(null);
   const [owners, setOwners] = useState([]);
 
-  const API_URL = 'http://localhost:5000/api/admin/properties';
-  const OWNERS_URL = 'http://localhost:5000/api/admin/owners';
-
   // Fetch buildings and owners from API
   useEffect(() => {
     fetchBuildings();
@@ -24,18 +22,8 @@ export const Buildings = () => {
 
   const fetchOwners = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(OWNERS_URL, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setOwners(data);
-      } else {
-        console.error('Failed to fetch owners');
-      }
+      const response = await api.get('/api/admin/owners');
+      setOwners(response.data);
     } catch (error) {
       console.error('Error fetching owners:', error);
     }
@@ -43,18 +31,8 @@ export const Buildings = () => {
 
   const fetchBuildings = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API_URL, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setBuildings(data);
-      } else {
-        console.error('Failed to fetch buildings');
-      }
+      const response = await api.get('/api/admin/properties');
+      setBuildings(response.data);
     } catch (error) {
       console.error('Error fetching buildings:', error);
     }
@@ -73,28 +51,19 @@ export const Buildings = () => {
     const newBuilding = {
       name: form.name.value,
       units: parseInt(form.units.value),
-      status: form.status.value
+      status: form.status.value,
+      civicNumber: form.civicNumber.value,
+      street: form.street.value,
+      city: form.city.value,
+      province: form.province.value,
+      postalCode: form.postalCode.value
     };
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newBuilding)
-      });
-
-      if (response.ok) {
-        const savedBuilding = await response.json();
-        setBuildings([...buildings, savedBuilding]);
-        setShowModal(false);
-        form.reset();
-      } else {
-        alert('Failed to add building');
-      }
+      const response = await api.post('/api/admin/properties', newBuilding);
+      setBuildings([...buildings, response.data]);
+      setShowModal(false);
+      form.reset();
     } catch (error) {
       console.error('Error adding building:', error);
       alert('Error adding building');
@@ -105,19 +74,8 @@ export const Buildings = () => {
   const deleteBuilding = async (id) => {
     if (window.confirm('Are you sure you want to delete this building?')) {
       try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (response.ok) {
-          setBuildings(buildings.filter(b => b.id !== id));
-        } else {
-          alert('Failed to delete building');
-        }
+        await api.delete(`/api/admin/properties/${id}`);
+        setBuildings(buildings.filter(b => b.id !== id));
       } catch (error) {
         console.error('Error deleting building:', error);
         alert('Error deleting building');
@@ -144,28 +102,19 @@ export const Buildings = () => {
     const updatedData = {
       name: form.name.value,
       units: parseInt(form.units.value),
-      status: form.status.value
+      status: form.status.value,
+      civicNumber: form.civicNumber.value,
+      street: form.street.value,
+      city: form.city.value,
+      province: form.province.value,
+      postalCode: form.postalCode.value
     };
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/${currentBuilding.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(updatedData)
-      });
-
-      if (response.ok) {
-        const updatedBuilding = await response.json();
-        setBuildings(buildings.map(b => b.id === currentBuilding.id ? updatedBuilding : b));
-        setShowEditModal(false);
-        form.reset();
-      } else {
-        alert('Failed to update building');
-      }
+      const response = await api.put(`/api/admin/properties/${currentBuilding.id}`, updatedData);
+      setBuildings(buildings.map(b => b.id === currentBuilding.id ? response.data : b));
+      setShowEditModal(false);
+      form.reset();
     } catch (error) {
       console.error('Error updating building:', error);
       alert('Error updating building');
@@ -305,8 +254,8 @@ export const Buildings = () => {
 
         {/* Add Building Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-            <form className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onSubmit={addBuilding}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 overflow-y-auto py-8">
+            <form className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 my-auto" onSubmit={addBuilding}>
               <div className="flex justify-between items-center mb-6">
                 <h3 className="m-0 text-slate-800 text-2xl font-bold">Add New Building</h3>
                 <button
@@ -318,9 +267,7 @@ export const Buildings = () => {
                 </button>
               </div>
 
-
-
-              <div className="mb-6">
+              <div className="mb-4">
                 <label htmlFor="name" className="block mb-2 font-medium text-slate-600">Building Name</label>
                 <input
                   type="text"
@@ -332,22 +279,89 @@ export const Buildings = () => {
                 />
               </div>
 
-              <div className="mb-6">
-                <label htmlFor="units" className="block mb-2 font-medium text-slate-600">Total Units</label>
+              {/* Address Fields */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="civicNumber" className="block mb-2 font-medium text-slate-600">Civic Number</label>
+                  <input
+                    type="text"
+                    id="civicNumber"
+                    name="civicNumber"
+                    placeholder="e.g., 82"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="street" className="block mb-2 font-medium text-slate-600">Street</label>
+                  <input
+                    type="text"
+                    id="street"
+                    name="street"
+                    placeholder="e.g., Allée Marthe-Rivard"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="city" className="block mb-2 font-medium text-slate-600">City</label>
+                  <input
+                    type="text"
+                    id="city"
+                    name="city"
+                    placeholder="e.g., Mont-Tremblant"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="province" className="block mb-2 font-medium text-slate-600">Province</label>
+                  <select
+                    id="province"
+                    name="province"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10 appearance-none bg-white"
+                  >
+                    <option value="">Select Province</option>
+                    <option value="Alberta">Alberta</option>
+                    <option value="British Columbia">British Columbia</option>
+                    <option value="Manitoba">Manitoba</option>
+                    <option value="New Brunswick">New Brunswick</option>
+                    <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                    <option value="Nova Scotia">Nova Scotia</option>
+                    <option value="Ontario">Ontario</option>
+                    <option value="Prince Edward Island">Prince Edward Island</option>
+                    <option value="Quebec">Quebec</option>
+                    <option value="Saskatchewan">Saskatchewan</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="postalCode" className="block mb-2 font-medium text-slate-600">Postal Code</label>
                 <input
-                  type="number"
-                  id="units"
-                  name="units"
-                  placeholder="Enter total units"
-                  min="1"
-                  required
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  placeholder="e.g., J8E 2G5"
                   className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
                 />
               </div>
 
-              <div className="mb-8">
-                <label htmlFor="status" className="block mb-2 font-medium text-slate-600">Status</label>
-                <div className="relative">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label htmlFor="units" className="block mb-2 font-medium text-slate-600">Total Units</label>
+                  <input
+                    type="number"
+                    id="units"
+                    name="units"
+                    placeholder="Enter total units"
+                    min="0"
+                    defaultValue="0"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="status" className="block mb-2 font-medium text-slate-600">Status</label>
                   <select
                     id="status"
                     name="status"
@@ -357,11 +371,6 @@ export const Buildings = () => {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
@@ -383,8 +392,8 @@ export const Buildings = () => {
 
         {/* View Building Modal */}
         {showViewModal && currentBuilding && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 overflow-y-auto py-8">
+            <div className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 my-auto">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="m-0 text-slate-800 text-2xl font-bold">Building Details</h3>
                 <button
@@ -400,6 +409,34 @@ export const Buildings = () => {
                   <span className="font-medium w-[140px] text-slate-500">Building Name:</span>
                   <span className="flex-1 font-semibold text-slate-800">{currentBuilding.name}</span>
                 </div>
+                <div className="flex items-center pb-3 border-b border-slate-100">
+                  <span className="font-medium w-[140px] text-slate-500">Address:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.address || 'Not Provided'}</span>
+                </div>
+                {currentBuilding.civicNumber && (
+                  <div className="flex items-center pb-3 border-b border-slate-100">
+                    <span className="font-medium w-[140px] text-slate-500">Civic Number:</span>
+                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.civicNumber}</span>
+                  </div>
+                )}
+                {currentBuilding.city && (
+                  <div className="flex items-center pb-3 border-b border-slate-100">
+                    <span className="font-medium w-[140px] text-slate-500">City:</span>
+                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.city}</span>
+                  </div>
+                )}
+                {currentBuilding.province && (
+                  <div className="flex items-center pb-3 border-b border-slate-100">
+                    <span className="font-medium w-[140px] text-slate-500">Province:</span>
+                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.province}</span>
+                  </div>
+                )}
+                {currentBuilding.postalCode && (
+                  <div className="flex items-center pb-3 border-b border-slate-100">
+                    <span className="font-medium w-[140px] text-slate-500">Postal Code:</span>
+                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.postalCode}</span>
+                  </div>
+                )}
                 <div className="flex items-center pb-3 border-b border-slate-100">
                   <span className="font-medium w-[140px] text-slate-500">Total Units:</span>
                   <span className="flex-1 font-semibold text-slate-800">{currentBuilding.units}</span>
@@ -443,8 +480,8 @@ export const Buildings = () => {
 
         {/* Edit Building Modal */}
         {showEditModal && currentBuilding && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200">
-            <form className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-300" onSubmit={updateBuilding}>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-200 overflow-y-auto py-8">
+            <form className="bg-white rounded-3xl p-8 w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-300 my-auto" onSubmit={updateBuilding}>
               <div className="flex justify-between items-center mb-6">
                 <h3 className="m-0 text-slate-800 text-2xl font-bold">Edit Building</h3>
                 <button
@@ -456,7 +493,7 @@ export const Buildings = () => {
                 </button>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <label htmlFor="edit-name" className="block mb-2 font-medium text-slate-600">Building Name</label>
                 <input
                   type="text"
@@ -468,22 +505,93 @@ export const Buildings = () => {
                 />
               </div>
 
-              <div className="mb-6">
-                <label htmlFor="edit-units" className="block mb-2 font-medium text-slate-600">Total Units</label>
+              {/* Address Fields */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="edit-civicNumber" className="block mb-2 font-medium text-slate-600">Civic Number</label>
+                  <input
+                    type="text"
+                    id="edit-civicNumber"
+                    name="civicNumber"
+                    defaultValue={currentBuilding.civicNumber || ''}
+                    placeholder="e.g., 82"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-street" className="block mb-2 font-medium text-slate-600">Street</label>
+                  <input
+                    type="text"
+                    id="edit-street"
+                    name="street"
+                    defaultValue={currentBuilding.street || ''}
+                    placeholder="e.g., Allée Marthe-Rivard"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="edit-city" className="block mb-2 font-medium text-slate-600">City</label>
+                  <input
+                    type="text"
+                    id="edit-city"
+                    name="city"
+                    defaultValue={currentBuilding.city || ''}
+                    placeholder="e.g., Mont-Tremblant"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-province" className="block mb-2 font-medium text-slate-600">Province</label>
+                  <select
+                    id="edit-province"
+                    name="province"
+                    defaultValue={currentBuilding.province || ''}
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10 appearance-none bg-white"
+                  >
+                    <option value="">Select Province</option>
+                    <option value="Alberta">Alberta</option>
+                    <option value="British Columbia">British Columbia</option>
+                    <option value="Manitoba">Manitoba</option>
+                    <option value="New Brunswick">New Brunswick</option>
+                    <option value="Newfoundland and Labrador">Newfoundland and Labrador</option>
+                    <option value="Nova Scotia">Nova Scotia</option>
+                    <option value="Ontario">Ontario</option>
+                    <option value="Prince Edward Island">Prince Edward Island</option>
+                    <option value="Quebec">Quebec</option>
+                    <option value="Saskatchewan">Saskatchewan</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="edit-postalCode" className="block mb-2 font-medium text-slate-600">Postal Code</label>
                 <input
-                  type="number"
-                  id="edit-units"
-                  name="units"
-                  defaultValue={currentBuilding.units}
-                  min="1"
-                  required
+                  type="text"
+                  id="edit-postalCode"
+                  name="postalCode"
+                  defaultValue={currentBuilding.postalCode || ''}
+                  placeholder="e.g., J8E 2G5"
                   className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
                 />
               </div>
 
-              <div className="mb-8">
-                <label htmlFor="edit-status" className="block mb-2 font-medium text-slate-600">Status</label>
-                <div className="relative">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label htmlFor="edit-units" className="block mb-2 font-medium text-slate-600">Total Units</label>
+                  <input
+                    type="number"
+                    id="edit-units"
+                    name="units"
+                    defaultValue={currentBuilding.units}
+                    min="0"
+                    className="w-full p-3 border-2 border-slate-200 rounded-xl text-base transition-all outline-none focus:border-[#667eea] focus:ring-4 focus:ring-[#667eea]/10"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="edit-status" className="block mb-2 font-medium text-slate-600">Status</label>
                   <select
                     id="edit-status"
                     name="status"
@@ -494,11 +602,6 @@ export const Buildings = () => {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M2 4L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
                 </div>
               </div>
 
