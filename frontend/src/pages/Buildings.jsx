@@ -184,13 +184,14 @@ export const Buildings = () => {
         {/* Table Card */}
         <Card className="bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in zoom-in-95 duration-500">
           <div className="w-full overflow-x-auto">
-            <div className="hidden md:grid grid-cols-8 min-w-[1100px] bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b-2 border-slate-200">
-              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Civic #</div>
+            <div className="hidden md:grid grid-cols-9 min-w-[1200px] bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b-2 border-slate-200">
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Civic Number</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Building Name</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Street</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">City</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Province</div>
-              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Units</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Postal Code</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Total Units</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Status</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Actions</div>
             </div>
@@ -199,7 +200,7 @@ export const Buildings = () => {
               {filteredBuildings.map((building, index) => (
                 <div
                   key={building.id}
-                  className="grid grid-cols-1 md:grid-cols-8 min-w-[1100px] px-6 py-4 border-b border-slate-100 transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white hover:scale-[1.002] hover:shadow-md items-center gap-4 md:gap-0"
+                  className="grid grid-cols-1 md:grid-cols-9 min-w-[1200px] px-6 py-4 border-b border-slate-100 transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white hover:scale-[1.002] hover:shadow-md items-center gap-4 md:gap-0"
                   style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex items-center">
@@ -219,6 +220,9 @@ export const Buildings = () => {
                   </div>
                   <div className="text-slate-600 text-sm">
                     {building.province || '-'}
+                  </div>
+                  <div className="text-slate-600 text-sm">
+                    {building.postalCode || '-'}
                   </div>
                   <div className="flex justify-between md:block md:w-auto w-full">
                     <span className="text-[1rem] font-semibold text-[#667eea]">{building.units}</span>
@@ -421,33 +425,25 @@ export const Buildings = () => {
                   <span className="flex-1 font-semibold text-slate-800">{currentBuilding.name}</span>
                 </div>
                 <div className="flex items-center pb-3 border-b border-slate-100">
-                  <span className="font-medium w-[140px] text-slate-500">Address:</span>
-                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.address || 'Not Provided'}</span>
+                  <span className="font-medium w-[140px] text-slate-500">Civic Number:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.civicNumber || '-'}</span>
                 </div>
-                {currentBuilding.civicNumber && (
-                  <div className="flex items-center pb-3 border-b border-slate-100">
-                    <span className="font-medium w-[140px] text-slate-500">Civic Number:</span>
-                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.civicNumber}</span>
-                  </div>
-                )}
-                {currentBuilding.city && (
-                  <div className="flex items-center pb-3 border-b border-slate-100">
-                    <span className="font-medium w-[140px] text-slate-500">City:</span>
-                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.city}</span>
-                  </div>
-                )}
-                {currentBuilding.province && (
-                  <div className="flex items-center pb-3 border-b border-slate-100">
-                    <span className="font-medium w-[140px] text-slate-500">Province:</span>
-                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.province}</span>
-                  </div>
-                )}
-                {currentBuilding.postalCode && (
-                  <div className="flex items-center pb-3 border-b border-slate-100">
-                    <span className="font-medium w-[140px] text-slate-500">Postal Code:</span>
-                    <span className="flex-1 font-semibold text-slate-800">{currentBuilding.postalCode}</span>
-                  </div>
-                )}
+                <div className="flex items-center pb-3 border-b border-slate-100">
+                  <span className="font-medium w-[140px] text-slate-500">Street:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.street || '-'}</span>
+                </div>
+                <div className="flex items-center pb-3 border-b border-slate-100">
+                  <span className="font-medium w-[140px] text-slate-500">City:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.city || '-'}</span>
+                </div>
+                <div className="flex items-center pb-3 border-b border-slate-100">
+                  <span className="font-medium w-[140px] text-slate-500">Province:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.province || '-'}</span>
+                </div>
+                <div className="flex items-center pb-3 border-b border-slate-100">
+                  <span className="font-medium w-[140px] text-slate-500">Postal Code:</span>
+                  <span className="flex-1 font-semibold text-slate-800">{currentBuilding.postalCode || '-'}</span>
+                </div>
                 <div className="flex items-center pb-3 border-b border-slate-100">
                   <span className="font-medium w-[140px] text-slate-500">Total Units:</span>
                   <span className="flex-1 font-semibold text-slate-800">{currentBuilding.units}</span>
