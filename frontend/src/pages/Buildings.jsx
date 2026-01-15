@@ -183,10 +183,14 @@ export const Buildings = () => {
 
         {/* Table Card */}
         <Card className="bg-white rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.1)] overflow-hidden animate-in fade-in zoom-in-95 duration-500">
-          <div className="w-full">
-            <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr] bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b-2 border-slate-200">
+          <div className="w-full overflow-x-auto">
+            <div className="hidden md:grid grid-cols-8 min-w-[1100px] bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b-2 border-slate-200">
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Civic #</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Building Name</div>
-              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Total Units</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Street</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">City</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Province</div>
+              <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Units</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Status</div>
               <div className="font-semibold text-slate-600 text-sm uppercase tracking-wide">Actions</div>
             </div>
@@ -195,55 +199,62 @@ export const Buildings = () => {
               {filteredBuildings.map((building, index) => (
                 <div
                   key={building.id}
-                  className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] px-6 py-4 border-b border-slate-100 transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white hover:scale-[1.005] hover:shadow-md animate-in slide-in-from-left-4 fade-in fill-mode-forwards items-center gap-4 md:gap-0"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="grid grid-cols-1 md:grid-cols-8 min-w-[1100px] px-6 py-4 border-b border-slate-100 transition-all duration-300 hover:bg-gradient-to-r hover:from-slate-50 hover:to-white hover:scale-[1.002] hover:shadow-md items-center gap-4 md:gap-0"
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#667eea] to-[#764ba2] rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
-                      <Building2 size={20} />
+                  <div className="flex items-center">
+                    <span className="font-bold text-[#667eea] text-lg">{building.civicNumber || '-'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#667eea] to-[#764ba2] rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm">
+                      <Building2 size={16} />
                     </div>
-                    <span className="font-medium text-slate-700">{building.name}</span>
+                    <span className="font-medium text-slate-700 text-sm">{building.name}</span>
+                  </div>
+                  <div className="text-slate-600 text-sm truncate" title={building.street}>
+                    {building.street || '-'}
+                  </div>
+                  <div className="text-slate-600 text-sm">
+                    {building.city || '-'}
+                  </div>
+                  <div className="text-slate-600 text-sm">
+                    {building.province || '-'}
                   </div>
                   <div className="flex justify-between md:block md:w-auto w-full">
-                    <span className="md:hidden font-semibold text-slate-500 text-sm">Units:</span>
-                    <span className="text-[1.1rem] font-semibold text-[#667eea]">{building.units}</span>
+                    <span className="text-[1rem] font-semibold text-[#667eea]">{building.units}</span>
                   </div>
                   <div className="flex justify-between md:block md:w-auto w-full">
-                    <span className="md:hidden font-semibold text-slate-500 text-sm">Status:</span>
                     <span
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold w-fit ${building.status === 'Active'
-                        ? 'bg-gradient-to-br from-emerald-100 to-emerald-50 text-emerald-800'
-                        : 'bg-gradient-to-br from-red-100 to-red-50 text-red-800'
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold w-fit ${building.status === 'Active'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : 'bg-red-100 text-red-800'
                         }`}
                     >
-                      <span className={`w-2 h-2 rounded-full ${building.status === 'Active' ? 'bg-emerald-500' : 'bg-red-500'} animate-pulse`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${building.status === 'Active' ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                       {building.status}
                     </span>
                   </div>
                   <div className="flex gap-2 justify-end md:justify-start">
                     <button
-                      className="w-9 h-9 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-sky-50 text-sky-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(2,132,199,0.2)] hover:scale-110 group relative"
+                      className="w-8 h-8 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-sky-50 text-sky-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(2,132,199,0.2)] hover:scale-110 group relative"
                       title="View Details"
                       onClick={() => viewBuilding(building)}
                     >
-                      <Eye size={16} />
-                      <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">View Details</span>
+                      <Eye size={14} />
                     </button>
                     <button
-                      className="w-9 h-9 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-emerald-50 text-emerald-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(22,163,74,0.2)] hover:scale-110 group relative"
+                      className="w-8 h-8 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-emerald-50 text-emerald-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(22,163,74,0.2)] hover:scale-110 group relative"
                       title="Edit Building"
                       onClick={() => editBuilding(building)}
                     >
-                      <Pencil size={16} />
-                      <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">Edit Building</span>
+                      <Pencil size={14} />
                     </button>
                     <button
-                      className="w-9 h-9 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-red-50 text-red-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(220,38,38,0.2)] hover:scale-110 group relative"
+                      className="w-8 h-8 border-none rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 bg-red-50 text-red-600 hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(220,38,38,0.2)] hover:scale-110 group relative"
                       title="Delete Building"
                       onClick={() => deleteBuilding(building.id)}
                     >
-                      <Trash2 size={16} />
-                      <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">Delete Building</span>
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>
